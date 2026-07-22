@@ -20,12 +20,12 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.finos.cdm.util.ResourcesUtils.getObject;
 
-public class CashPriceQuantityNoOfUnitsTriangulationTest extends AbstractFunctionTest {
+public class PriceQuantityTriangulationTest extends AbstractFunctionTest {
 
 	private static final String EQUITY_DIR = "ingest/output/fpml-confirmation-to-trade-state/fpml-5-10-products-equity/";
-	
+
 	@Inject
-	private CashPriceQuantityNoOfUnitsTriangulation func;
+	private PriceQuantityTriangulation func;
 
 	@Test
 	void shouldTriangulateEquityPriceNotionalAndNoOfUnitsAndReturnSuccess() throws IOException {
@@ -33,13 +33,11 @@ public class CashPriceQuantityNoOfUnitsTriangulationTest extends AbstractFunctio
 		TradableProduct tradableProduct = tradeState.getTrade();
 
 		List<? extends PriceQuantity> priceQuantity = tradableProduct.getTradeLot().get(0).getPriceQuantity();
-		List<? extends NonNegativeQuantitySchedule> quantity = priceQuantity.stream()
+		NonNegativeQuantitySchedule quantity = priceQuantity.stream()
 				.map(PriceQuantity::getQuantity)
 				.filter(Objects::nonNull)
-				.flatMap(Collection::stream)
-				.map(FieldWithMetaNonNegativeQuantitySchedule::getValue)
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+				.map(FieldWithMetaNonNegativeQuantitySchedule::getValue).collect(Collectors.toList()).get(0);
+
 		List<? extends PriceSchedule> price = priceQuantity.stream()
 				.map(PriceQuantity::getPrice)
 				.filter(Objects::nonNull)
@@ -47,7 +45,7 @@ public class CashPriceQuantityNoOfUnitsTriangulationTest extends AbstractFunctio
 				.map(FieldWithMetaPriceSchedule::getValue)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		boolean success = func.evaluate(quantity, price);
+		boolean success = func.evaluate(price, quantity);
 
 		assertTrue(success);
 	}
@@ -58,13 +56,12 @@ public class CashPriceQuantityNoOfUnitsTriangulationTest extends AbstractFunctio
 		TradableProduct tradableProduct = tradeState.getTrade();
 
 		List<? extends PriceQuantity> priceQuantity = tradableProduct.getTradeLot().get(0).getPriceQuantity();
-		List<? extends NonNegativeQuantitySchedule> quantity = priceQuantity.stream()
+		NonNegativeQuantitySchedule quantity = priceQuantity.stream()
 				.map(PriceQuantity::getQuantity)
 				.filter(Objects::nonNull)
-				.flatMap(Collection::stream)
 				.map(FieldWithMetaNonNegativeQuantitySchedule::getValue)
 				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+				.findFirst().orElse(null);
 		List<? extends PriceSchedule> price = priceQuantity.stream()
 				.map(PriceQuantity::getPrice)
 				.filter(Objects::nonNull)
@@ -72,7 +69,7 @@ public class CashPriceQuantityNoOfUnitsTriangulationTest extends AbstractFunctio
 				.map(FieldWithMetaPriceSchedule::getValue)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
-		boolean success = func.evaluate(quantity, price);
+		boolean success = func.evaluate(price, quantity);
 
 		assertTrue(success);
 	}
